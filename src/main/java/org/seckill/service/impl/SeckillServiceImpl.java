@@ -2,6 +2,7 @@ package org.seckill.service.impl;
 
 import org.seckill.dao.SeckillDao;
 import org.seckill.dao.SuccessKilledDao;
+import org.seckill.dao.cache.RedisDao;
 import org.seckill.dto.Exposer;
 import org.seckill.dto.SeckillExecution;
 import org.seckill.entity.Seckill;
@@ -34,11 +35,15 @@ public class SeckillServiceImpl implements SeckillService {
     private SeckillDao seckillDao;
     @Autowired
     private SuccessKilledDao successKilledDao;
+    @Autowired
+    private RedisDao redisDao;
 
+    @Override
     public List<Seckill> getSekillList() {
         return seckillDao.queryAll(0, 4);
     }
 
+    @Override
     public Seckill getById(long seckillId) {
         return seckillDao.queryById(seckillId);
     }
@@ -50,10 +55,27 @@ public class SeckillServiceImpl implements SeckillService {
      * 2.保证事务方法的执行时间尽可能的短，不要穿插其他网络操作RPC/HTTP请求或者剥离到事务方法外部
      * 3.不是所有的方法都需要事务，如果只有一条修改操作，只读操作不需要事务控制        当有两条或者两条以上语句修改操作时，才使用事务
      */
+    @Override
     public Exposer exportSeckillURL(long seckillId) {
-        Seckill seckill = getById(seckillId);
-        if (seckill == null) {
-            return new Exposer(false, seckillId);
+        // 优化点：缓存优化 超时的基础上维护一致性（超时维护一致性也是最常用的维护一致性方式）
+        /**
+         * get from cache
+         * if null
+         *    get db
+         *    put cache
+         *  logic
+         */
+        // 1.访问redis
+        Seckill seckill = redisDao.getSeckill(seckillId);
+        if(seckill == null ){
+           // 2.访问数据库
+           seckill = getById(seckillId);
+           if (seckill == null) {
+               return new Exposer(false, seckillId);
+           }else{
+               // 3:存入redis
+               redisDao.putSeckill(seckill);
+           }
         }
         Date startTime = seckill.getStartTime();
         Date endTime = seckill.getEndTime();
@@ -76,6 +98,7 @@ public class SeckillServiceImpl implements SeckillService {
     }
 
     @Transactional
+    @Override
     public SeckillExecution executeSeckill(long seckillId, long userPhone, String md5) throws SeckillException, RepeatKillException, SeckillCloseException {
         if(md5 == null || !md5.equals(getMD5(seckillId))){
             throw new SeckillException("sekill data rewrite");
