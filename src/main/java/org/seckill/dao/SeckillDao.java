@@ -5,6 +5,7 @@ import org.seckill.entity.Seckill;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public interface SeckillDao {
     /**
@@ -29,4 +30,13 @@ public interface SeckillDao {
      * @return
      */
     List<Seckill> queryAll(@Param("offet") int offet, @Param("limit") int limit);
+
+    /**
+     * @Author minghai
+     * @Description 使用存储过程执行秒杀
+     * @Date 2019/11/19 17:32
+     * @Param [paramMap]
+     * @return void
+     */
+    void killByProcedure(Map<String,Object> paramMap);
 }

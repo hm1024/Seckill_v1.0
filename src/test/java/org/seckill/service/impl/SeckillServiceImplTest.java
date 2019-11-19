@@ -65,4 +65,23 @@ public class SeckillServiceImplTest {
 
     }
 
+    /**
+     * @Author minghai
+     * @Description 测试通过存储过程完成秒杀
+     * @Date 2019/11/19 18:41
+     * @Param []
+     * @return void
+     */
+    @Test
+    public void executeSeckillProcedure(){
+        long seckillId  = 1001L;
+        long phone = 1392349900L;
+        Exposer exposer = seckillService.exportSeckillURL(seckillId);
+        if(exposer.isExposed()){
+            String md5 = exposer.getMd5();
+            SeckillExecution execution = seckillService.executeSeckillProcedure(seckillId, phone, md5);
+            logger.info(execution.getStateInfo());
+        }
+    }
+
 }

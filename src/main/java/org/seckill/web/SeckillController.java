@@ -75,7 +75,9 @@ public class SeckillController {
             return new SeckillResult<SeckillExecution>(false,"未注冊");
         }
         try{
-            SeckillExecution execution = seckillService.executeSeckill(seckillId, killPhone, md5);
+//            SeckillExecution execution = seckillService.executeSeckill(seckillId, killPhone, md5);
+            // 使用存储过程完成秒杀
+            SeckillExecution execution = seckillService.executeSeckillProcedure(seckillId, killPhone, md5);
             return new SeckillResult<SeckillExecution>(true,execution);
         }catch (SeckillCloseException e){
             SeckillExecution execution = new SeckillExecution(seckillId,SeckillStatEnum.END);

@@ -30,7 +30,7 @@
 
     <!--3：配置jsp 显示ViewResolver-->
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-        <!-- 配置 jSTL 相关的内容 -->
+        <!-- 配置 JSTL 相关的内容 -->
         <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
         <property name="prefix" value="/WEB-INF/jsp/"/>
         <property name="suffix" value=".jsp"/>
